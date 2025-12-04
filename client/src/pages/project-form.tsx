@@ -17,13 +17,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CutListTable } from "@/components/cut-list-table";
+import { HardwareTable } from "@/components/hardware-table";
 import { ImageUpload } from "@/components/image-upload";
 import { ProjectDetailSkeleton } from "@/components/loading-skeleton";
 import {
-  type Project,
-  type CutListItem,
-  type InsertProject,
-  insertProjectSchema,
+  type ProjectWithDetails,
+  type CutListItemForm,
+  type HardwareItemForm,
+  projectFormSchema,
+  type ProjectForm as ProjectFormType,
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,15 +37,16 @@ export default function ProjectForm() {
   const { toast } = useToast();
   const isEditing = !!id;
 
-  const [cutList, setCutList] = useState<CutListItem[]>([]);
+  const [cutList, setCutList] = useState<CutListItemForm[]>([]);
+  const [hardware, setHardware] = useState<HardwareItemForm[]>([]);
 
-  const { data: project, isLoading: isLoadingProject } = useQuery<Project>({
+  const { data: project, isLoading: isLoadingProject } = useQuery<ProjectWithDetails>({
     queryKey: ["/api/projects", id],
     enabled: isEditing,
   });
 
-  const form = useForm<InsertProject>({
-    resolver: zodResolver(insertProjectSchema),
+  const form = useForm<ProjectFormType>({
+    resolver: zodResolver(projectFormSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -58,28 +61,45 @@ export default function ProjectForm() {
         description: project.description ?? "",
         imageUrl: project.imageUrl ?? "",
       });
-      setCutList(project.cutList);
+      
+      const cutListForms: CutListItemForm[] = project.cutList.map(item => ({
+        id: item.id,
+        partName: item.partName,
+        quantity: item.quantity,
+        length: typeof item.length === 'string' ? parseFloat(item.length) : item.length,
+        width: typeof item.width === 'string' ? parseFloat(item.width) : item.width,
+        thickness: typeof item.thickness === 'string' ? parseFloat(item.thickness) : item.thickness,
+        material: item.material as any,
+        unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice,
+        notes: item.notes || undefined,
+        status: (item.status as any) || "not_started",
+      }));
+      setCutList(cutListForms);
+      
+      const hardwareForms: HardwareItemForm[] = (project.hardware || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.type as any,
+        size: item.size || undefined,
+        quantity: item.quantity,
+        unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice,
+        notes: item.notes || undefined,
+        url: item.url || undefined,
+      }));
+      setHardware(hardwareForms);
     }
   }, [project, form]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: InsertProject) => {
+    mutationFn: async (data: ProjectFormType) => {
       const response = await apiRequest("POST", "/api/projects", {
         ...data,
-        cutList: cutList.map((item) => ({
-          partName: item.partName,
-          quantity: item.quantity,
-          length: item.length,
-          width: item.width,
-          thickness: item.thickness,
-          material: item.material,
-          unitPrice: item.unitPrice,
-          notes: item.notes,
-        })),
+        cutList,
+        hardware,
       });
       return response.json();
     },
-    onSuccess: (data: Project) => {
+    onSuccess: (data: ProjectWithDetails) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
         title: "Project created",
@@ -97,19 +117,11 @@ export default function ProjectForm() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: InsertProject) => {
+    mutationFn: async (data: ProjectFormType) => {
       const response = await apiRequest("PATCH", `/api/projects/${id}`, {
         ...data,
-        cutList: cutList.map((item) => ({
-          partName: item.partName,
-          quantity: item.quantity,
-          length: item.length,
-          width: item.width,
-          thickness: item.thickness,
-          material: item.material,
-          unitPrice: item.unitPrice,
-          notes: item.notes,
-        })),
+        cutList,
+        hardware,
       });
       return response.json();
     },
@@ -131,7 +143,7 @@ export default function ProjectForm() {
     },
   });
 
-  const onSubmit = (data: InsertProject) => {
+  const onSubmit = (data: ProjectFormType) => {
     if (isEditing) {
       updateMutation.mutate(data);
     } else {
@@ -169,7 +181,7 @@ export default function ProjectForm() {
           </h1>
           <p className="text-muted-foreground mt-1">
             {isEditing
-              ? "Update your project details and cut list"
+              ? "Update your project details, cut list, and hardware"
               : "Add your project details and build your cut list"}
           </p>
         </div>
@@ -210,6 +222,7 @@ export default function ProjectForm() {
                           placeholder="Describe your project, materials, and any special notes..."
                           className="min-h-[100px] resize-y"
                           {...field}
+                          value={field.value ?? ""}
                           data-testid="input-description"
                         />
                       </FormControl>
@@ -228,7 +241,7 @@ export default function ProjectForm() {
                     <FormItem>
                       <FormControl>
                         <ImageUpload
-                          value={field.value}
+                          value={field.value ?? undefined}
                           onChange={field.onChange}
                           label="Project Image"
                         />
@@ -246,6 +259,15 @@ export default function ProjectForm() {
               </CardHeader>
               <CardContent>
                 <CutListTable items={cutList} onChange={setCutList} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Hardware & Fasteners</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <HardwareTable items={hardware} onChange={setHardware} />
               </CardContent>
             </Card>
 

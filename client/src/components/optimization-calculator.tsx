@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { type CutListItem } from "@shared/schema";
+import { type CutListItemForm } from "@shared/schema";
 import { optimizeCutList, calculateWasteBoardFeet } from "@shared/cut-optimizer";
 import { 
   Lightbulb, 
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 interface OptimizationCalculatorProps {
-  cutList: CutListItem[];
+  cutList: CutListItemForm[];
 }
 
 export function OptimizationCalculator({ cutList }: OptimizationCalculatorProps) {

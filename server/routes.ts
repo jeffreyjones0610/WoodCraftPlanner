@@ -2,7 +2,12 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProjectSchema, updateProjectSchema } from "@shared/schema";
+import { 
+  projectFormSchema,
+  insertInventoryItemSchema,
+  insertProjectNoteSchema,
+  itemStatusTypes,
+} from "@shared/schema";
 import { getProductsByMaterial, getAllProducts } from "@shared/materials-database";
 import { z } from "zod";
 import multer from "multer";
@@ -83,7 +88,8 @@ export async function registerRoutes(
     }
   });
   
-  // Projects API
+  // ============ PROJECTS API ============
+  
   app.get("/api/projects", async (req, res) => {
     try {
       const projects = await storage.getProjects();
@@ -109,8 +115,16 @@ export async function registerRoutes(
 
   app.post("/api/projects", async (req, res) => {
     try {
-      const validated = insertProjectSchema.parse(req.body);
-      const project = await storage.createProject(validated);
+      const validated = projectFormSchema.parse(req.body);
+      const project = await storage.createProject(
+        {
+          title: validated.title,
+          description: validated.description,
+          imageUrl: validated.imageUrl,
+        },
+        validated.cutList,
+        validated.hardware
+      );
       res.status(201).json(project);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -126,8 +140,17 @@ export async function registerRoutes(
 
   app.patch("/api/projects/:id", async (req, res) => {
     try {
-      const validated = updateProjectSchema.parse(req.body);
-      const project = await storage.updateProject(req.params.id, validated);
+      const validated = projectFormSchema.partial().parse(req.body);
+      const project = await storage.updateProject(
+        req.params.id, 
+        {
+          title: validated.title,
+          description: validated.description,
+          imageUrl: validated.imageUrl,
+        },
+        validated.cutList,
+        validated.hardware
+      );
       if (!project) {
         return res.status(404).json({ error: "Project not found" });
       }
@@ -154,6 +177,161 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting project:", error);
       res.status(500).json({ error: "Failed to delete project" });
+    }
+  });
+
+  // Clone project
+  app.post("/api/projects/:id/clone", async (req, res) => {
+    try {
+      const newTitle = req.body.title as string | undefined;
+      const cloned = await storage.cloneProject(req.params.id, newTitle);
+      if (!cloned) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      res.status(201).json(cloned);
+    } catch (error) {
+      console.error("Error cloning project:", error);
+      res.status(500).json({ error: "Failed to clone project" });
+    }
+  });
+
+  // ============ CUT LIST ITEMS API ============
+  
+  // Update cut list item status (for progress tracking)
+  app.patch("/api/cut-list-items/:id/status", async (req, res) => {
+    try {
+      const status = req.body.status as string;
+      if (!itemStatusTypes.includes(status as any)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      const updated = await storage.updateCutListItemStatus(req.params.id, status);
+      if (!updated) {
+        return res.status(404).json({ error: "Cut list item not found" });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating cut list item status:", error);
+      res.status(500).json({ error: "Failed to update status" });
+    }
+  });
+
+  // ============ INVENTORY API ============
+  
+  app.get("/api/inventory", async (req, res) => {
+    try {
+      const items = await storage.getInventoryItems();
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+      res.status(500).json({ error: "Failed to fetch inventory" });
+    }
+  });
+
+  app.get("/api/inventory/:id", async (req, res) => {
+    try {
+      const item = await storage.getInventoryItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ error: "Inventory item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      console.error("Error fetching inventory item:", error);
+      res.status(500).json({ error: "Failed to fetch inventory item" });
+    }
+  });
+
+  app.post("/api/inventory", async (req, res) => {
+    try {
+      const validated = insertInventoryItemSchema.parse(req.body);
+      const item = await storage.createInventoryItem(validated);
+      res.status(201).json(item);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error("Error creating inventory item:", error);
+      res.status(500).json({ error: "Failed to create inventory item" });
+    }
+  });
+
+  app.patch("/api/inventory/:id", async (req, res) => {
+    try {
+      const validated = insertInventoryItemSchema.partial().parse(req.body);
+      const item = await storage.updateInventoryItem(req.params.id, validated);
+      if (!item) {
+        return res.status(404).json({ error: "Inventory item not found" });
+      }
+      res.json(item);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error("Error updating inventory item:", error);
+      res.status(500).json({ error: "Failed to update inventory item" });
+    }
+  });
+
+  app.delete("/api/inventory/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteInventoryItem(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Inventory item not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting inventory item:", error);
+      res.status(500).json({ error: "Failed to delete inventory item" });
+    }
+  });
+
+  // ============ PROJECT NOTES API ============
+  
+  app.get("/api/projects/:projectId/notes", async (req, res) => {
+    try {
+      const notes = await storage.getProjectNotes(req.params.projectId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching project notes:", error);
+      res.status(500).json({ error: "Failed to fetch notes" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/notes", async (req, res) => {
+    try {
+      const validated = insertProjectNoteSchema.parse({
+        ...req.body,
+        projectId: req.params.projectId,
+      });
+      const note = await storage.createProjectNote(validated);
+      res.status(201).json(note);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      console.error("Error creating project note:", error);
+      res.status(500).json({ error: "Failed to create note" });
+    }
+  });
+
+  app.delete("/api/notes/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteProjectNote(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting project note:", error);
+      res.status(500).json({ error: "Failed to delete note" });
     }
   });
 

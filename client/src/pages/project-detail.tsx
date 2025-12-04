@@ -5,17 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CutListTable } from "@/components/cut-list-table";
+import { HardwareTable } from "@/components/hardware-table";
+import { ProjectNotes } from "@/components/project-notes";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { ProjectDetailSkeleton } from "@/components/loading-skeleton";
 import { OptimizationCalculator } from "@/components/optimization-calculator";
 import { ShoppingListExport } from "@/components/shopping-list-export";
 import {
-  type Project,
+  type ProjectWithDetails,
+  type CutListItemForm,
+  type HardwareItemForm,
   calculateProjectCost,
   calculateProjectBoardFeet,
+  calculateHardwareCost,
   getTotalPieces,
-  materialTypes,
 } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +33,10 @@ import {
   DollarSign,
   Calendar,
   Printer,
+  Copy,
+  Wrench,
+  Loader2,
+  FileDown,
 } from "lucide-react";
 
 export default function ProjectDetail() {
@@ -36,7 +45,7 @@ export default function ProjectDetail() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
 
-  const { data: project, isLoading, error } = useQuery<Project>({
+  const { data: project, isLoading, error } = useQuery<ProjectWithDetails>({
     queryKey: ["/api/projects", id],
   });
 
@@ -56,6 +65,28 @@ export default function ProjectDetail() {
       toast({
         title: "Error",
         description: "Failed to delete project. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const cloneMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/projects/${id}/clone`);
+      return response.json();
+    },
+    onSuccess: (data: ProjectWithDetails) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: "Project cloned",
+        description: "A copy of this project has been created.",
+      });
+      navigate(`/projects/${data.id}`);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to clone project. Please try again.",
         variant: "destructive",
       });
     },
@@ -87,11 +118,38 @@ export default function ProjectDetail() {
     );
   }
 
-  const totalCost = calculateProjectCost(project.cutList);
-  const totalBoardFeet = calculateProjectBoardFeet(project.cutList);
-  const totalPieces = getTotalPieces(project.cutList);
+  const cutListForms: CutListItemForm[] = project.cutList.map(item => ({
+    id: item.id,
+    partName: item.partName,
+    quantity: item.quantity,
+    length: typeof item.length === 'string' ? parseFloat(item.length) : item.length,
+    width: typeof item.width === 'string' ? parseFloat(item.width) : item.width,
+    thickness: typeof item.thickness === 'string' ? parseFloat(item.thickness) : item.thickness,
+    material: item.material as any,
+    unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice,
+    notes: item.notes || undefined,
+    status: (item.status as any) || "not_started",
+  }));
 
-  const materialBreakdown = project.cutList.reduce((acc, item) => {
+  const hardwareForms: HardwareItemForm[] = (project.hardware || []).map(item => ({
+    id: item.id,
+    name: item.name,
+    type: item.type as any,
+    size: item.size || undefined,
+    quantity: item.quantity,
+    unitPrice: typeof item.unitPrice === 'string' ? parseFloat(item.unitPrice) : item.unitPrice,
+    notes: item.notes || undefined,
+    url: item.url || undefined,
+  }));
+
+  const totalCost = calculateProjectCost(cutListForms);
+  const hardwareCost = calculateHardwareCost(hardwareForms);
+  const totalBoardFeet = calculateProjectBoardFeet(cutListForms);
+  const totalPieces = getTotalPieces(cutListForms);
+  const totalHardwarePieces = hardwareForms.reduce((sum, item) => sum + item.quantity, 0);
+  const grandTotal = totalCost + hardwareCost;
+
+  const materialBreakdown = cutListForms.reduce((acc, item) => {
     const existing = acc.find((m) => m.material === item.material);
     if (existing) {
       existing.pieces += item.quantity;
@@ -110,6 +168,14 @@ export default function ProjectDetail() {
     window.print();
   };
 
+  const handleExportPDF = () => {
+    window.print();
+    toast({
+      title: "Print dialog opened",
+      description: "Select 'Save as PDF' to export your project plan.",
+    });
+  };
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 print:py-4 print:px-2">
       <div className="max-w-7xl mx-auto">
@@ -121,7 +187,25 @@ export default function ProjectDetail() {
             </Button>
           </Link>
           <div className="flex gap-2 flex-wrap">
-            <ShoppingListExport project={project} />
+            <ShoppingListExport project={{ ...project, cutList: cutListForms, hardware: hardwareForms }} />
+            <Button 
+              variant="outline" 
+              onClick={() => cloneMutation.mutate()} 
+              className="gap-2"
+              disabled={cloneMutation.isPending}
+              data-testid="button-clone"
+            >
+              {cloneMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+              Clone
+            </Button>
+            <Button variant="outline" onClick={handleExportPDF} className="gap-2" data-testid="button-export-pdf">
+              <FileDown className="h-4 w-4" />
+              PDF
+            </Button>
             <Button variant="outline" onClick={handlePrint} className="gap-2" data-testid="button-print">
               <Printer className="h-4 w-4" />
               Print
@@ -169,11 +253,40 @@ export default function ProjectDetail() {
 
             <Separator />
 
-            <div>
-              <h2 className="font-semibold text-xl mb-4" data-testid="text-cutlist-heading">
-                Cut List
-              </h2>
-              <CutListTable items={project.cutList} onChange={() => {}} readOnly />
+            <Tabs defaultValue="cutlist" className="print:hidden">
+              <TabsList>
+                <TabsTrigger value="cutlist" className="gap-2" data-testid="tab-cutlist">
+                  <Layers className="h-4 w-4" />
+                  Cut List ({cutListForms.length})
+                </TabsTrigger>
+                <TabsTrigger value="hardware" className="gap-2" data-testid="tab-hardware">
+                  <Wrench className="h-4 w-4" />
+                  Hardware ({hardwareForms.length})
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="cutlist" className="mt-4">
+                <CutListTable items={cutListForms} onChange={() => {}} readOnly />
+              </TabsContent>
+              <TabsContent value="hardware" className="mt-4">
+                <HardwareTable items={hardwareForms} onChange={() => {}} readOnly />
+              </TabsContent>
+            </Tabs>
+
+            <div className="print:block hidden">
+              <h2 className="font-semibold text-xl mb-4">Cut List</h2>
+              <CutListTable items={cutListForms} onChange={() => {}} readOnly />
+              
+              {hardwareForms.length > 0 && (
+                <>
+                  <h2 className="font-semibold text-xl mb-4 mt-8">Hardware & Fasteners</h2>
+                  <HardwareTable items={hardwareForms} onChange={() => {}} readOnly />
+                </>
+              )}
+            </div>
+
+            <div className="print:hidden">
+              <Separator className="my-6" />
+              <ProjectNotes projectId={project.id} />
             </div>
           </div>
 
@@ -186,10 +299,19 @@ export default function ProjectDetail() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Layers className="h-4 w-4" />
-                    <span>Total Pieces</span>
+                    <span>Cut List Pieces</span>
                   </div>
                   <span className="font-semibold" data-testid="text-summary-pieces">{totalPieces}</span>
                 </div>
+                {totalHardwarePieces > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Wrench className="h-4 w-4" />
+                      <span>Hardware Items</span>
+                    </div>
+                    <span className="font-semibold" data-testid="text-summary-hardware">{totalHardwarePieces}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Ruler className="h-4 w-4" />
@@ -201,9 +323,25 @@ export default function ProjectDetail() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
-                    <span>Estimated Cost</span>
+                    <span>Lumber Cost</span>
                   </div>
-                  <span className="font-bold text-lg" data-testid="text-summary-cost">${totalCost.toFixed(2)}</span>
+                  <span className="font-semibold" data-testid="text-summary-lumber-cost">${totalCost.toFixed(2)}</span>
+                </div>
+                {hardwareCost > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Wrench className="h-4 w-4" />
+                      <span>Hardware Cost</span>
+                    </div>
+                    <span className="font-semibold" data-testid="text-summary-hardware-cost">${hardwareCost.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                    <DollarSign className="h-4 w-4" />
+                    <span>Total Estimated Cost</span>
+                  </div>
+                  <span className="font-bold text-lg" data-testid="text-summary-cost">${grandTotal.toFixed(2)}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between text-sm">
@@ -245,7 +383,7 @@ export default function ProjectDetail() {
               </Card>
             )}
 
-            <OptimizationCalculator cutList={project.cutList} />
+            <OptimizationCalculator cutList={cutListForms} />
           </div>
         </div>
 

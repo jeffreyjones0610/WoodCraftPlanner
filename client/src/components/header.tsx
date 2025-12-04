@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UnitToggle } from "@/components/unit-toggle";
 import { Hammer, Plus, Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -12,6 +13,7 @@ export function Header() {
     { href: "/", label: "Home" },
     { href: "/projects", label: "Projects" },
     { href: "/templates", label: "Templates" },
+    { href: "/inventory", label: "Inventory" },
   ];
 
   return (
@@ -42,6 +44,9 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <div className="hidden sm:block">
+              <UnitToggle />
+            </div>
             <ThemeToggle />
             <Link href="/projects/new" className="hidden sm:block">
               <Button data-testid="button-new-project">
@@ -81,6 +86,9 @@ export function Header() {
                 </Button>
               </Link>
             ))}
+            <div className="flex items-center gap-2 pt-2">
+              <UnitToggle />
+            </div>
             <Link href="/projects/new">
               <Button
                 className="w-full mt-2"

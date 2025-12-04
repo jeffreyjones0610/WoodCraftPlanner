@@ -1,7 +1,7 @@
 // Cut Optimization Algorithm
 // Uses a first-fit decreasing algorithm to minimize waste
 
-import { type CutListItem } from "./schema";
+import { type CutListItemForm } from "./schema";
 import { type MaterialProduct, getProductsByMaterial, getAllProducts } from "./materials-database";
 
 export interface CutPiece {
@@ -114,7 +114,7 @@ function optimizeLinearCuts(
 }
 
 // Main optimization function
-export function optimizeCutList(cutList: CutListItem[]): OptimizationResult {
+export function optimizeCutList(cutList: CutListItemForm[]): OptimizationResult {
   if (cutList.length === 0) {
     return {
       boardUsage: [],

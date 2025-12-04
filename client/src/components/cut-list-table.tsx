@@ -22,18 +22,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MaterialLookup } from "@/components/material-lookup";
-import { type CutListItem, type InsertCutListItem, materialTypes, calculateItemTotal } from "@shared/schema";
-import { Plus, Trash2, GripVertical, ExternalLink } from "lucide-react";
+import { type CutListItemForm, materialTypes, calculateItemTotal } from "@shared/schema";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 
 interface CutListTableProps {
-  items: CutListItem[];
-  onChange: (items: CutListItem[]) => void;
+  items: CutListItemForm[];
+  onChange: (items: CutListItemForm[]) => void;
   readOnly?: boolean;
 }
 
 export function CutListTable({ items, onChange, readOnly = false }: CutListTableProps) {
   const addItem = () => {
-    const newItem: CutListItem = {
+    const newItem: CutListItemForm = {
       id: crypto.randomUUID(),
       partName: "",
       quantity: 1,
@@ -43,11 +43,12 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
       material: "Pine",
       unitPrice: 0,
       notes: "",
+      status: "not_started",
     };
     onChange([...items, newItem]);
   };
 
-  const updateItem = (id: string, field: keyof InsertCutListItem, value: string | number) => {
+  const updateItem = (id: string | undefined, field: keyof CutListItemForm, value: string | number) => {
     onChange(
       items.map((item) =>
         item.id === id ? { ...item, [field]: value } : item
@@ -55,7 +56,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
     );
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: string | undefined) => {
     onChange(items.filter((item) => item.id !== id));
   };
 
@@ -85,26 +86,26 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
             ) : (
               items.map((item, index) => (
                 <TableRow 
-                  key={item.id} 
+                  key={item.id || index} 
                   className={index % 2 === 0 ? "bg-background" : "bg-muted/30"}
-                  data-testid={`row-cutlist-${item.id}`}
+                  data-testid={`row-cutlist-${item.id || index}`}
                 >
-                  <TableCell className="font-medium" data-testid={`text-partname-${item.id}`}>
+                  <TableCell className="font-medium" data-testid={`text-partname-${item.id || index}`}>
                     {item.partName}
                   </TableCell>
-                  <TableCell className="text-center" data-testid={`text-qty-${item.id}`}>
+                  <TableCell className="text-center" data-testid={`text-qty-${item.id || index}`}>
                     {item.quantity}
                   </TableCell>
-                  <TableCell data-testid={`text-dimensions-${item.id}`}>
+                  <TableCell data-testid={`text-dimensions-${item.id || index}`}>
                     {item.length}" × {item.width}" × {item.thickness}"
                   </TableCell>
-                  <TableCell data-testid={`text-material-${item.id}`}>
+                  <TableCell data-testid={`text-material-${item.id || index}`}>
                     {item.material}
                   </TableCell>
-                  <TableCell className="text-right" data-testid={`text-unitprice-${item.id}`}>
+                  <TableCell className="text-right" data-testid={`text-unitprice-${item.id || index}`}>
                     ${item.unitPrice.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-right font-medium" data-testid={`text-total-${item.id}`}>
+                  <TableCell className="text-right font-medium" data-testid={`text-total-${item.id || index}`}>
                     ${calculateItemTotal(item).toFixed(2)}
                   </TableCell>
                 </TableRow>
@@ -156,9 +157,9 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
             ) : (
               items.map((item, index) => (
                 <TableRow 
-                  key={item.id}
+                  key={item.id || index}
                   className={index % 2 === 0 ? "bg-background" : "bg-muted/30"}
-                  data-testid={`row-edit-cutlist-${item.id}`}
+                  data-testid={`row-edit-cutlist-${item.id || index}`}
                 >
                   <TableCell className="text-muted-foreground">
                     <GripVertical className="h-4 w-4" />
@@ -169,7 +170,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                       onChange={(e) => updateItem(item.id, "partName", e.target.value)}
                       placeholder="Part name"
                       className="min-w-[120px]"
-                      data-testid={`input-partname-${item.id}`}
+                      data-testid={`input-partname-${item.id || index}`}
                     />
                   </TableCell>
                   <TableCell>
@@ -179,7 +180,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 1)}
                       className="w-16 text-center"
-                      data-testid={`input-qty-${item.id}`}
+                      data-testid={`input-qty-${item.id || index}`}
                     />
                   </TableCell>
                   <TableCell>
@@ -191,7 +192,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                         value={item.length}
                         onChange={(e) => updateItem(item.id, "length", parseFloat(e.target.value) || 0)}
                         className="w-20"
-                        data-testid={`input-length-${item.id}`}
+                        data-testid={`input-length-${item.id || index}`}
                       />
                       <span className="text-muted-foreground text-sm">"</span>
                     </div>
@@ -205,7 +206,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                         value={item.width}
                         onChange={(e) => updateItem(item.id, "width", parseFloat(e.target.value) || 0)}
                         className="w-20"
-                        data-testid={`input-width-${item.id}`}
+                        data-testid={`input-width-${item.id || index}`}
                       />
                       <span className="text-muted-foreground text-sm">"</span>
                     </div>
@@ -219,7 +220,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                         value={item.thickness}
                         onChange={(e) => updateItem(item.id, "thickness", parseFloat(e.target.value) || 0)}
                         className="w-20"
-                        data-testid={`input-thickness-${item.id}`}
+                        data-testid={`input-thickness-${item.id || index}`}
                       />
                       <span className="text-muted-foreground text-sm">"</span>
                     </div>
@@ -229,7 +230,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                       value={item.material}
                       onValueChange={(value) => updateItem(item.id, "material", value)}
                     >
-                      <SelectTrigger className="min-w-[100px]" data-testid={`select-material-${item.id}`}>
+                      <SelectTrigger className="min-w-[100px]" data-testid={`select-material-${item.id || index}`}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -251,7 +252,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                         value={item.unitPrice}
                         onChange={(e) => updateItem(item.id, "unitPrice", parseFloat(e.target.value) || 0)}
                         className="w-20"
-                        data-testid={`input-price-${item.id}`}
+                        data-testid={`input-price-${item.id || index}`}
                       />
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -276,7 +277,7 @@ export function CutListTable({ items, onChange, readOnly = false }: CutListTable
                       variant="ghost"
                       size="icon"
                       onClick={() => removeItem(item.id)}
-                      data-testid={`button-remove-item-${item.id}`}
+                      data-testid={`button-remove-item-${item.id || index}`}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { type CutListItem, type Project } from "@shared/schema";
+import { type CutListItemForm, type HardwareItemForm } from "@shared/schema";
 import { optimizeCutList } from "@shared/cut-optimizer";
 import { 
   ShoppingCart, 
@@ -23,7 +23,11 @@ import {
 } from "lucide-react";
 
 interface ShoppingListExportProps {
-  project: Project;
+  project: {
+    title: string;
+    cutList: CutListItemForm[];
+    hardware?: HardwareItemForm[];
+  };
 }
 
 interface ShoppingItem {
