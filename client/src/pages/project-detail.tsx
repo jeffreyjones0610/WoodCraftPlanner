@@ -13,6 +13,7 @@ import { DeleteDialog } from "@/components/delete-dialog";
 import { ProjectDetailSkeleton } from "@/components/loading-skeleton";
 import { OptimizationCalculator } from "@/components/optimization-calculator";
 import { ShoppingListExport } from "@/components/shopping-list-export";
+import { ProjectSEO, SEO } from "@/components/seo";
 import {
   type ProjectWithDetails,
   type CutListItemForm,
@@ -178,6 +179,7 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 print:py-4 print:px-2">
+      <ProjectSEO project={project} />
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between gap-4 mb-6 print:hidden flex-wrap">
           <Link href="/projects">

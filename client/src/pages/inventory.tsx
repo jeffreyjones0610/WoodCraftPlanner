@@ -29,6 +29,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SEO } from "@/components/seo";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Edit, Package, Loader2 } from "lucide-react";
@@ -167,8 +168,13 @@ export default function Inventory() {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Inventory"
+        description="Track your woodworking materials inventory. Manage lumber, plywood, and hardware on hand to plan your projects efficiently."
+        url="/inventory"
+      />
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8" aria-label="Inventory header">
           <div>
             <h1 className="font-serif text-3xl font-bold tracking-tight" data-testid="text-inventory-title">
               Material Inventory
@@ -334,7 +340,7 @@ export default function Inventory() {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
+        </section>
 
         <div className="grid gap-4 md:grid-cols-3 mb-8">
           <Card>

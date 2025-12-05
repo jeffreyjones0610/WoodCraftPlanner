@@ -20,6 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { SEO } from "@/components/seo";
 import { projectTemplates, type ProjectTemplate } from "@shared/project-templates";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -119,6 +120,11 @@ export default function Templates() {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Project Templates"
+        description="Browse our library of woodworking project templates. From beginner furniture to advanced outdoor builds, find the perfect starting point for your next DIY project."
+        url="/templates"
+      />
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Link href="/">
@@ -128,14 +134,14 @@ export default function Templates() {
           </Link>
         </div>
 
-        <div className="mb-8">
+        <section className="mb-8" aria-label="Templates header">
           <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight mb-2" data-testid="text-templates-title">
             Project Templates
           </h1>
           <p className="text-muted-foreground text-lg">
             Start your next woodworking project with a pre-built template
           </p>
-        </div>
+        </section>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">

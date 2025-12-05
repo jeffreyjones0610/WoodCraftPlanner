@@ -212,6 +212,14 @@ Screw, Nail, Bolt, Hinge, Handle, Knob, Bracket, Dowel, Glue, Finish, Other
 - Difficulty levels: Beginner, Intermediate, Advanced
 - One-click project creation from template
 
+### SEO Optimization
+- Dynamic meta tags with react-helmet-async
+- Open Graph and Twitter Card support for social sharing
+- JSON-LD structured data (WebSite, Organization, CreativeWork, BreadcrumbList)
+- robots.txt and sitemap.xml for search engine crawlers
+- Canonical URLs for all pages
+- Default OG image (og-image.png) for social previews
+
 ## Design System
 - Font: Inter (body), Playfair Display (headings)
 - Color theme: Warm brown/wood tones

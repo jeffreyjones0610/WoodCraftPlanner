@@ -14,6 +14,7 @@ import { ProjectCard } from "@/components/project-card";
 import { EmptyState } from "@/components/empty-state";
 import { DeleteDialog } from "@/components/delete-dialog";
 import { ProjectGallerySkeleton } from "@/components/loading-skeleton";
+import { SEO } from "@/components/seo";
 import { type Project, materialTypes } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -89,6 +90,11 @@ export default function Projects() {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Projects"
+        description="Browse and manage your woodworking projects. Track cut lists, materials, costs, and build progress for all your DIY creations."
+        url="/projects"
+      />
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>

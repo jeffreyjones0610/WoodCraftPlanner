@@ -50,22 +50,21 @@ export function SEO({
 }
 
 interface ProjectSEOProps {
-  title: string;
-  description?: string | null;
-  imageUrl?: string | null;
-  projectId: string;
-  materials?: string[];
-  estimatedCost?: number;
+  project: {
+    id: string;
+    title: string;
+    description?: string | null;
+    imageUrl?: string | null;
+    cutList?: Array<{ material: string; unitPrice: number; quantity: number }>;
+  };
 }
 
-export function ProjectSEO({
-  title,
-  description,
-  imageUrl,
-  projectId,
-  materials = [],
-  estimatedCost,
-}: ProjectSEOProps) {
+export function ProjectSEO({ project }: ProjectSEOProps) {
+  const { id, title, description, imageUrl, cutList = [] } = project;
+  
+  const materials = [...new Set(cutList.map(item => item.material))];
+  const estimatedCost = cutList.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  
   const metaDescription = description
     ? description.slice(0, 155) + (description.length > 155 ? "..." : "")
     : `View the complete cut list, materials, and build details for ${title}. Plan your next woodworking project with WoodCraft Pro.`;
@@ -76,9 +75,9 @@ export function ProjectSEO({
     name: title,
     description: metaDescription,
     image: imageUrl || DEFAULT_IMAGE,
-    url: `${BASE_URL}/projects/${projectId}`,
+    url: `${BASE_URL}/projects/${id}`,
     material: materials.join(", "),
-    ...(estimatedCost && {
+    ...(estimatedCost > 0 && {
       offers: {
         "@type": "Offer",
         price: estimatedCost.toFixed(2),
@@ -108,7 +107,7 @@ export function ProjectSEO({
         "@type": "ListItem",
         position: 3,
         name: title,
-        item: `${BASE_URL}/projects/${projectId}`,
+        item: `${BASE_URL}/projects/${id}`,
       },
     ],
   };
@@ -119,7 +118,7 @@ export function ProjectSEO({
         title={title}
         description={metaDescription}
         image={imageUrl || undefined}
-        url={`/projects/${projectId}`}
+        url={`/projects/${id}`}
         type="article"
       />
       <Helmet>

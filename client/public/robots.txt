@@ -1,0 +1,9 @@
+# Allow all web crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://woodcraft-pro.replit.app/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /api/
