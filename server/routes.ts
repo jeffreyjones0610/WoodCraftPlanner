@@ -57,6 +57,14 @@ export async function registerRoutes(
   });
   app.use("/uploads", express.static(uploadDir));
 
+  // Serve generated images from attached_assets
+  const generatedImagesDir = path.join(process.cwd(), "attached_assets", "generated_images");
+  app.use("/generated_images", (req, res, next) => {
+    res.setHeader("Cache-Control", "public, max-age=31536000");
+    next();
+  });
+  app.use("/generated_images", express.static(generatedImagesDir));
+
   // Materials API
   app.get("/api/materials", async (req, res) => {
     try {
