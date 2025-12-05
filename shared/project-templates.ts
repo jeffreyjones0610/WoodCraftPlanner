@@ -19,6 +19,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "furniture",
     difficulty: "beginner",
     estimatedTime: "4-6 hours",
+    imageUrl: "/generated_images/simple_pine_bookshelf.png",
     cutList: [
       { partName: "Side Panel", quantity: 2, length: 72, width: 11.25, thickness: 0.75, material: "Pine", unitPrice: 25.98, notes: "Left and right sides" },
       { partName: "Shelf", quantity: 4, length: 30, width: 11.25, thickness: 0.75, material: "Pine", unitPrice: 12.98, notes: "Adjustable shelves" },
@@ -33,6 +34,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "outdoor",
     difficulty: "intermediate",
     estimatedTime: "8-10 hours",
+    imageUrl: "/generated_images/cedar_adirondack_chair.png",
     cutList: [
       { partName: "Back Slat - Wide", quantity: 3, length: 36, width: 5.5, thickness: 0.75, material: "Cedar", unitPrice: 8.98, notes: "Center back slats" },
       { partName: "Back Slat - Narrow", quantity: 2, length: 34, width: 3.5, thickness: 0.75, material: "Cedar", unitPrice: 6.48, notes: "Outer back slats" },
@@ -50,6 +52,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "furniture",
     difficulty: "intermediate",
     estimatedTime: "6-8 hours",
+    imageUrl: "/generated_images/floating_walnut_nightstand.png",
     cutList: [
       { partName: "Top", quantity: 1, length: 18, width: 12, thickness: 0.75, material: "Walnut", unitPrice: 32.98, notes: "Hardwood top" },
       { partName: "Side", quantity: 2, length: 12, width: 6, thickness: 0.75, material: "Walnut", unitPrice: 18.98, notes: "Left and right sides" },
@@ -68,6 +71,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "workshop",
     difficulty: "intermediate",
     estimatedTime: "10-14 hours",
+    imageUrl: "/generated_images/heavy-duty_workbench.png",
     cutList: [
       { partName: "Top Laminate", quantity: 3, length: 72, width: 11.25, thickness: 1.5, material: "Pine", unitPrice: 22.98, notes: "2x12 for thick top" },
       { partName: "Leg", quantity: 4, length: 34, width: 3.5, thickness: 3.5, material: "Pine", unitPrice: 12.98, notes: "4x4 posts" },
@@ -83,6 +87,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "decor",
     difficulty: "beginner",
     estimatedTime: "2-3 hours",
+    imageUrl: "/generated_images/oak_picture_frame_set.png",
     cutList: [
       { partName: "Large Frame Rail", quantity: 4, length: 14, width: 2, thickness: 0.75, material: "Oak", unitPrice: 4.98, notes: "8x10 frame" },
       { partName: "Medium Frame Rail", quantity: 4, length: 10, width: 2, thickness: 0.75, material: "Oak", unitPrice: 3.98, notes: "5x7 frame" },
@@ -99,6 +104,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "storage",
     difficulty: "intermediate",
     estimatedTime: "8-10 hours",
+    imageUrl: "/generated_images/storage_ottoman.png",
     cutList: [
       { partName: "Side Panel", quantity: 4, length: 18, width: 16, thickness: 0.75, material: "Plywood", unitPrice: 12.98, notes: "3/4 inch plywood" },
       { partName: "Bottom", quantity: 1, length: 16.5, width: 16.5, thickness: 0.75, material: "Plywood", unitPrice: 8.98, notes: "Base" },
@@ -114,6 +120,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "outdoor",
     difficulty: "beginner",
     estimatedTime: "3-4 hours",
+    imageUrl: "/generated_images/cedar_planter_box.png",
     cutList: [
       { partName: "Long Side", quantity: 2, length: 36, width: 11.25, thickness: 0.75, material: "Cedar", unitPrice: 18.98, notes: "1x12 cedar" },
       { partName: "Short Side", quantity: 2, length: 18, width: 11.25, thickness: 0.75, material: "Cedar", unitPrice: 9.98, notes: "1x12 cedar" },
@@ -130,6 +137,7 @@ export const projectTemplates: ProjectTemplate[] = [
     category: "workshop",
     difficulty: "advanced",
     estimatedTime: "12-16 hours",
+    imageUrl: "/generated_images/wall_tool_cabinet.png",
     cutList: [
       { partName: "Side", quantity: 2, length: 36, width: 8, thickness: 0.75, material: "Birch", unitPrice: 18.98, notes: "Birch plywood sides" },
       { partName: "Top/Bottom", quantity: 2, length: 24, width: 8, thickness: 0.75, material: "Birch", unitPrice: 14.98, notes: "Birch plywood" },
